@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- JAVA와 연결할 Mapper 파일 설정 -->
+<mapper namespace="kopo.poly.persistance.mapper.IUserInfoMapper">
+
+    <select id="getUserIdExists" parameterType="UserInfoDTO" resultType="UserInfoDTO">
+        SELECT DECODE(COUNT(1), 0, 'N', 'Y') AS EXISTS_YN
+        FROM USER_INFO
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="getEmailExists" parameterType="UserInfoDTO" resultType="UserInfoDTO">
+        SELECT DECODE(COUNT(1), 0, 'N', 'Y') AS EXISTS_YN
+        FROM USER_INFO
+        WHERE EMAIL = #{email}
+    </select>
+
+    <!--    데이터베이스에 저장할 데이터들을 넣어주는 쿼리문. parameterType의 역할은 UserInfoDTO에서 넘겨준 데이터-->
+    <insert id="insertUserInfo" parameterType="UserInfoDTO">
+        INSERT INTO USER_INFO
+        (USER_ID,
+         USER_NAME,
+         PASSWORD,
+         EMAIL,
+         ADDR1,
+         ADDR2,
+         REG_ID,
+         REG_DT,
+         CHG_ID,
+         CHG_DT,
+         USERINFO_SEQ)
+        VALUES (#{userId},
+                #{userName},
+                #{password},
+                #{email},
+                #{addr1},
+                #{addr2},
+                #{userId},
+                SYSDATE,
+                #{userId},
+                SYSDATE,
+                (SELECT NVL(MAX(A.USERINFO_SEQ),0)+1 FROM USER_INFO A)
+               )
+
+    </insert>
+    <select id="getUserInfoList" resultType="UserInfoDTO">
+        SELECT U.USERINFO_SEQ, U.USER_ID, U.USER_NAME, U.EMAIL, U.ADDR1
+
+        FROM  USER_INFO U
+        ORDER BY U.USERINFO_SEQ
+    </select>
+    <select id="getUserInfo" resultType="UserInfoDTO" parameterType="UserInfoDTO">
+        SELECT   USER_ID, USER_NAME, EMAIL, ADDR1
+        FROM  USER_INFO
+        WHERE USER_ID = #{userId}
+
+    </select>
+
+    <!-- seq 를 가져오는곳 파라미터 타입에 가져올 Mapper에 선언한 매개변수를 가져와야한다. 그래야
+    찾을 수 있으니까 어디서 가져올거에요 ~~-->
+
+    <select id="getLogin" resultType="UserInfoDTO" parameterType="UserInfoDTO">
+        SELECT USER_ID, USER_NAME, EMAIL
+        FROM USER_INFO
+        WHERE USER_ID = #{userId}
+          AND PASSWORD = #{password}
+    </select>
+
+    <select id="getUserId" resultType="UserInfoDTO" parameterType="UserInfoDTO">
+        SELECT
+        USER_ID,
+        USER_NAME,
+        EMAIL
+        FROM USER_INFO
+        WHERE 1=1
+        <if test="userId neq null and userId neq '' ">  -- neq는 not equal 이라는 것임.
+            AND USER_ID = #{userId}
+        </if>
+        AND USER_NAME = #{userName}
+        AND EMAIL = #{email}
+    </select>
+
+    <update id="updatePassword" parameterType="UserInfoDTO">
+        UPDATE USER_INFO
+        SET PASSWORD = #{password}
+        WHERE USER_ID = #{userId}
+    </update>
+
+</mapper>
